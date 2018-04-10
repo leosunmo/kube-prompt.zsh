@@ -38,87 +38,90 @@ _KUBE_PS1_SUFFIX=")"
 __KUBE_PS1_UNAME=$(uname)
 __KUBE_PS1_LAST_TIME=0
 
-kube_ps1_label () {
+_kube_ps1_label() {
 
-  [[ "${_KUBE_PS1_DEFAULT_LABEL_IMG}" == false ]] && return
+	[[ "${_KUBE_PS1_DEFAULT_LABEL_IMG}" == false ]] && return
 
-  if [[ "${_KUBE_PS1_DEFAULT_LABEL_IMG}" == true ]]; then
-    local _KUBE_LABEL="☸️ "
-  fi
+	if [[ "${_KUBE_PS1_DEFAULT_LABEL_IMG}" == true ]]; then
+		local _KUBE_LABEL="☸️ "
+	fi
 
-  _KUBE_PS1_DEFAULT_LABEL="${_KUBE_LABEL}"
+	_KUBE_PS1_DEFAULT_LABEL="${_KUBE_LABEL}"
 
 }
 
 _kube_ps1_split() {
-  type setopt >/dev/null 2>&1 && setopt SH_WORD_SPLIT
-  local IFS=$1
-  echo $2
+
+	type setopt >/dev/null 2>&1 && setopt SH_WORD_SPLIT
+	local IFS=$1
+	echo $2
 }
 
 _kube_ps1_file_newer_than() {
 
-  local mtime
-  local file=$1
-  local check_time=$2
-  mtime=$(stat +mtime "${file}")
+	local mtime
+	local file=$1
+	local check_time=$2
+	mtime=$(stat +mtime "${file}")
 
-  [ "${mtime}" -gt "${check_time}" ]
+	[ "${mtime}" -gt "${check_time}" ]
 
 }
 
 _kube_ps1_load() {
-  # kubectl will read the environment variable $KUBECONFIG
-  # otherwise set it to ~/.kube/config
-  _PS1_KUBECONFIG="${KUBECONFIG:=$HOME/.kube/config}"
 
-  for conf in $(_kube_ps1_split : "${_PS1_KUBECONFIG}"); do
-    # TODO: check existence of $conf
-    if _kube_ps1_file_newer_than "${conf}" "${_KUBE_PS1_LAST_TIME}"; then
-      _kube_ps1_get_context_ns
-      return
-    fi
-  done
+	local conf
+	# kubectl will read the environment variable $KUBECONFIG
+	# otherwise set it to ~/.kube/config
+	_PS1_KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+
+	for conf in $(_kube_ps1_split : "${_PS1_KUBECONFIG}"); do
+		# TODO: check existence of $conf
+		if _kube_ps1_file_newer_than "${conf}" "${_KUBE_PS1_LAST_TIME}"; then
+			_kube_ps1_get_context_ns
+			return
+		fi
+	done
 }
 
 _kube_ps1_get_context_ns() {
 
-  # Set the command time
-  _KUBE_PS1_LAST_TIME=$(date +%s)
+	# Set the command time
+	_KUBE_PS1_LAST_TIME=$(date +%s)
 
-  if [[ "${_KUBE_PS1_DEFAULT}" == true ]]; then
-    local _KUBE_BINARY="${_KUBE_PS1_PLATFORM}"
-  elif [[ "${_KUBE_PS1_DEFAULT}" == false ]] && [[ "${_KUBE_PS1_PLATFORM}" == "kubectl" ]];then
-    local _KUBE_BINARY="kubectl"
-  elif [[ "${_KUBE_PS1_PLATFORM}" == "oc" ]]; then
-    local _KUBE_BINARY="oc"
-  fi
+	if [[ "${_KUBE_PS1_DEFAULT}" == true ]]; then
+		local _KUBE_BINARY="${_KUBE_PS1_PLATFORM}"
+	elif [[ "${_KUBE_PS1_DEFAULT}" == false ]] && [[ "${_KUBE_PS1_PLATFORM}" == "kubectl" ]]; then
+		local _KUBE_BINARY="kubectl"
+	elif [[ "${_KUBE_PS1_PLATFORM}" == "oc" ]]; then
+		local _KUBE_BINARY="oc"
+	fi
 
-  _KUBE_PS1_CONTEXT="$(${_KUBE_BINARY} config current-context)"
-  _KUBE_PS1_NAMESPACE="$(${_KUBE_BINARY} config view --minify --output 'jsonpath={..namespace}')"
-  # Set namespace to default if it is not defined
-  _KUBE_PS1_NAMESPACE="${_KUBE_PS1_NAMESPACE:-default}"
+	_KUBE_PS1_CONTEXT="$(${_KUBE_BINARY} config current-context)"
+	_KUBE_PS1_NAMESPACE="$(${_KUBE_BINARY} config view --minify --output 'jsonpath={..namespace}')"
+	# Set namespace to default if it is not defined
+	_KUBE_PS1_NAMESPACE="${_KUBE_PS1_NAMESPACE:-default}"
 
 }
 
 # source our symbol
-kube_ps1_label
+_kube_ps1_label
 
 # Build our prompt
-kube_ps1 () {
-  local reset_color="%f"
-  local blue="%F{blue}"
-  local red="%F{red}"
-  local cyan="%F{cyan}"
+_kube_ps1() {
+	local reset_color="%f"
+	local blue="%F{blue}"
+	local red="%F{red}"
+	local cyan="%F{cyan}"
 
-  _KUBE_PS1="${reset_color}$_KUBE_PS1_PREFIX"
-  _KUBE_PS1+="${blue}$_KUBE_PS1_DEFAULT_LABEL"
-  _KUBE_PS1+="${reset_color}$_KUBE_PS1_SEPERATOR"
-  _KUBE_PS1+="${red}$_KUBE_PS1_CONTEXT${reset_color}"
-  _KUBE_PS1+="$_KUBE_PS1_DIVIDER"
-  _KUBE_PS1+="${cyan}$_KUBE_PS1_NAMESPACE${reset_color}"
-  _KUBE_PS1+="$_KUBE_PS1_SUFFIX"
+	_KUBE_PS1="${reset_color}$_KUBE_PS1_PREFIX"
+	_KUBE_PS1+="${blue}$_KUBE_PS1_DEFAULT_LABEL"
+	_KUBE_PS1+="${reset_color}$_KUBE_PS1_SEPERATOR"
+	_KUBE_PS1+="${red}$_KUBE_PS1_CONTEXT${reset_color}"
+	_KUBE_PS1+="$_KUBE_PS1_DIVIDER"
+	_KUBE_PS1+="${cyan}$_KUBE_PS1_NAMESPACE${reset_color}"
+	_KUBE_PS1+="$_KUBE_PS1_SUFFIX"
 
-  echo "${_KUBE_PS1}"
+	echo "${_KUBE_PS1}"
 
 }
