@@ -1,8 +1,12 @@
-kube-ps1: Kubernetes prompt for bash and zsh
+kube-ps1: Kubernetes prompt for zsh
 ============================================
 
+This fork is essentially a modified version of the oh-my-zsh [kube-ps1 plugin](https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/kube-ps1).
+
+It removes the envorinment variables that will show up when you try to tab out the `kubectl` command as well as some minor ZSH fixes.
+
 A script that lets you add the current Kubernetes context and namespace configured
-on `kubectl` to your Bash/Zsh prompt strings (i.e. the `$PS1`).
+on `kubectl` to your Zsh prompt strings (i.e. the `$PS1`).
 
 Inspired by several tools used to simplify usage of `kubectl`.
 
